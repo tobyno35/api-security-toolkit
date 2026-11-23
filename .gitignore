@@ -4,3 +4,39 @@ __pycache__/
 build/
 dist/
 reports/
+
+# Credentials and local environment (including nested files)
+.env
+.env.*
+*.env
+*.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*
+secrets/
+.secret*
+
+# Local databases and journals
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+
+# Temporary captures and private assessment material
+*.pcap
+*.pcapng
+*.har
+*.tmp
+*.log
+*.bak
+*~
+captures/
+private/
+evidence/
+assessments/
+.assessment-incomplete/

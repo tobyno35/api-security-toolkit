@@ -1,13 +1,16 @@
 import copy
+import contextlib
+import io
 import json
 import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
-from api_security_toolkit.__main__ import load_json, markdown
-from api_security_toolkit.assessment import InputError, assess
+from api_security_toolkit.__main__ import load_json, markdown, main, write_report, write_reports
+from api_security_toolkit.assessment import InputError, assess, classify
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "fixtures"
@@ -131,6 +134,50 @@ class AssessmentTests(unittest.TestCase):
         self.assertEqual(markdown(first), markdown(second))
 
 
+    def test_classifier_rejects_conflict_even_without_policy(self):
+        for rule in (None, {"decision": "allow"}, {"decision": "deny"}):
+            with self.subTest(rule=rule), self.assertRaises(InputError):
+                classify(rule, [{"outcome": "allowed"}, {"outcome": "denied"}], ["control"])
+
+    def test_inconclusive_does_not_hide_control_contradiction(self):
+        case = self.evidence["cases"][0]
+        case["observations"].extend([
+            dict(ref="control-unknown", actor="alex", outcome="inconclusive"),
+            dict(ref="control-denied", actor="alex", outcome="denied"),
+        ])
+        for reverse in (False, True):
+            with self.subTest(reverse=reverse):
+                if reverse:
+                    case["observations"].reverse()
+                with self.assertRaisesRegex(InputError, "contradictory observations"):
+                    self.results()
+
+    def test_inconclusive_can_coexist_with_success(self):
+        self.evidence["cases"][0]["observations"].append(
+            dict(ref="unknown", actor="blair", outcome="inconclusive"))
+        self.assertEqual(self.results()["01-bola"]["classification"], "confirmed")
+
+    def test_owner_does_not_control_cross_tenant_case(self):
+        self.evidence["cases"][4]["observations"][1]["actor"] = "alex"
+        self.policy["rules"].append(dict(id="owner-summary", operation="view-record-summary",
+                                         role="member", relation="own", decision="allow"))
+        result = self.results()["05-no-finding"]
+        self.assertEqual(result["control_references"], [])
+        self.assertEqual(result["classification"], "insufficient_evidence")
+
+    def test_same_role_does_not_control_function_check(self):
+        self.evidence["cases"][1]["observations"][1]["actor"] = "alex"
+        self.assertEqual(self.results()["02-function"]["classification"], "suspected")
+
+    def test_other_case_control_is_not_borrowed(self):
+        self.evidence["cases"][0]["observations"].pop()
+        other = copy.deepcopy(self.evidence["cases"][0])
+        other["id"] = "control-only"
+        other["observations"] = [dict(ref="separate-control", actor="alex", outcome="allowed")]
+        self.evidence["cases"].append(other)
+        self.assertEqual(self.results()["01-bola"]["classification"], "suspected")
+
+
 class CliTests(unittest.TestCase):
     def invoke(self, evidence, out_dir):
         return subprocess.run(
@@ -174,6 +221,73 @@ class CliTests(unittest.TestCase):
             self.assertEqual(command.returncode, 2)
             self.assertEqual(evidence.read_bytes(), original)
             self.assertFalse((out_dir / "report.md").exists())
+
+
+    def test_publication_failure_is_marked_and_never_reports_success(self):
+        for failed_write in (1, 2):
+            with self.subTest(failed_write=failed_write), tempfile.TemporaryDirectory() as directory:
+                out = Path(directory)
+                for name in ("report.json", "report.md"):
+                    (out / name).write_text("old report")
+                calls = []
+                def fail_selected(path, content):
+                    calls.append(path)
+                    if len(calls) == failed_write:
+                        raise OSError("simulated disk failure")
+                    write_report(path, content)
+                stdout, stderr = io.StringIO(), io.StringIO()
+                with patch("api_security_toolkit.__main__.write_report", side_effect=fail_selected), \
+                        contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                    code = main(["--evidence", str(FIXTURES / "evidence.json"),
+                                 "--policy", str(FIXTURES / "policy.json"), "--out-dir", str(out)])
+                self.assertEqual(code, 2)
+                self.assertEqual(stdout.getvalue(), "")
+                self.assertIn("INCOMPLETE", stderr.getvalue())
+                self.assertTrue((out / ".assessment-incomplete").is_dir())
+                before = {p.name: p.read_bytes() for p in out.iterdir() if p.is_file()}
+                retry = self.invoke(FIXTURES / "evidence.json", out)
+                self.assertEqual(retry.returncode, 2)
+                self.assertEqual(before, {p.name: p.read_bytes() for p in out.iterdir() if p.is_file()})
+
+    def test_success_clears_marker(self):
+        with tempfile.TemporaryDirectory() as directory:
+            out = Path(directory)
+            self.assertEqual(self.invoke(FIXTURES / "evidence.json", out).returncode, 0)
+            self.assertEqual({p.name for p in out.iterdir()}, {"report.json", "report.md"})
+
+    def test_replace_failure_cleans_temporary_and_keeps_marker(self):
+        with tempfile.TemporaryDirectory() as directory:
+            out = Path(directory)
+            with patch.object(Path, "replace", side_effect=OSError("replace failed")):
+                with self.assertRaisesRegex(OSError, "INCOMPLETE"):
+                    write_reports(out, {out / "report.json": "new"})
+            self.assertEqual([p.name for p in out.iterdir()], [".assessment-incomplete"])
+
+    def test_marker_removal_failure_is_not_success(self):
+        with tempfile.TemporaryDirectory() as directory:
+            out = Path(directory)
+            with patch.object(Path, "rmdir", side_effect=OSError("remove failed")):
+                with self.assertRaisesRegex(OSError, "INCOMPLETE"):
+                    write_reports(out, {out / "report.json": "new", out / "report.md": "new"})
+            self.assertTrue((out / ".assessment-incomplete").exists())
+
+
+class IgnoreTests(unittest.TestCase):
+    def test_private_material_ignored_but_synthetic_fixtures_visible(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            subprocess.run(["git", "init", "-q", str(root)], check=True, capture_output=True)
+            (root / ".gitignore").write_bytes((ROOT / ".gitignore").read_bytes())
+            ignored = [".env", ".env.local", "nested/prod.env", "nested/private.key",
+                       "secrets/token", "credentials.json", "data.db-wal", "data.sqlite3",
+                       "capture.har", "capture.pcapng", "evidence/client.json",
+                       "private/result.json", "assessments/client/report.md", "capture.tmp"]
+            visible = ["fixtures/evidence.json", "fixtures/policy.json",
+                       "fixtures/contradictory-evidence.json", ".env.example"]
+            for name in ignored + visible:
+                result = subprocess.run(["git", "-C", str(root), "check-ignore", "--no-index", name],
+                                        capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0 if name in ignored else 1, name)
 
 
 if __name__ == "__main__":

@@ -33,7 +33,7 @@ python3 -m api_security_toolkit \
 python3 -m unittest discover -s tests -v
 ```
 
-The first invocation writes `report.json` and `report.md`, with three confirmed cases and one case in each remaining classification. Both reports include the observation references, matched policy rules, and a reason per case. Exit code 0 means the assessment completed, regardless of classifications. The second invocation returns exit code 2 and identifies the conflicting references before writing any reports. Valid runs replace existing reports in the selected output directory.
+The first invocation writes `report.json` and `report.md`, with three confirmed cases and one case in each remaining classification. Both reports include the observation references, matched policy rules, and a reason per case. Exit code 0 means the assessment completed, regardless of classifications. The second invocation returns exit code 2 and identifies the conflicting references before writing any reports. Valid runs replace existing reports in the selected output directory. Publication creates an exclusive `.assessment-incomplete` directory before writing either report and removes it only after both writes succeed. If this marker exists, neither report is a completed assessment: files may be old, new, or mixed. A failed or interrupted write leaves the marker in place, and further runs refuse to publish there. Use a fresh output directory, or inspect/discard the incomplete reports and remove the marker after ensuring no writer is active. Consumers must check the marker and the CLI exit status; individual file presence is not a completion signal. This is not a crash-durable transaction or a snapshot protocol for concurrent readers.
 
 ## Input format
 

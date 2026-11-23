@@ -144,9 +144,11 @@ def comparable(check, subject, subject_relation, actor, relation):
 
 
 def classify(subject_rule, subject_observations, controls):
+    outcomes = {item["outcome"] for item in subject_observations}
+    if {"allowed", "denied"} <= outcomes:
+        raise InputError("contradictory subject observations")
     if subject_rule is None:
         return "insufficient_evidence", "No explicit permission rule for the subject."
-    outcomes = {item["outcome"] for item in subject_observations}
     expected_outcome = {"allow": "allowed", "deny": "denied"}[subject_rule["decision"]]
     if subject_rule["decision"] == "deny" and "allowed" in outcomes:
         if controls:
