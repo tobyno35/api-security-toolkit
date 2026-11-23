@@ -79,11 +79,3 @@ sources and references and contain no timestamp. Reordering files produces ident
 reports; changing file bytes or record order intentionally changes provenance.
 JSON includes all quarantine details; Markdown includes assets, references and
 quarantine details with HTML/table escaping.
-
-## Review gate
-
-Branch: `feature/ori-17-v0.2-reviewed-main`. No push, deployment or merge is part
-of this delivery. Human approval is required before any merge. The review bundle
-contains source, fixtures, tests and generated sample reports. Tests cover denied
-scope, wildcard bypasses, redirect/IP scope inheritance, malformed records and
-allowlists, canonicalization, provenance, deterministic output and CLI behavior.

@@ -211,7 +211,7 @@ def main():
         inputs = [(t, p) for t in ('subfinder', 'dnsx', 'httpx') for p in getattr(args, t)]
         if not inputs:
             raise EvidenceError('at least one evidence file is required')
-        report = build(Scope(parse_json(Path(args.allowlist).read_text())), inputs)
+        report = build(Scope(parse_json(Path(args.allowlist).read_text(encoding="utf-8"))), inputs)
         publish(report, args.output)
     except (ValueError, OSError, UnicodeError) as exc:
         parser.exit(2, f'error: {exc}\n')
