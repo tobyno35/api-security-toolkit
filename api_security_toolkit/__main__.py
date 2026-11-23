@@ -77,6 +77,24 @@ def write_report(path, content):
             temporary.unlink(missing_ok=True)
 
 
+def write_reports(out_dir, output):
+    # An exclusive directory both marks unfinished publication and prevents
+    # concurrent writers from clearing another run's failure marker.
+    marker = out_dir / ".assessment-incomplete"
+    try:
+        marker.mkdir()
+    except FileExistsError as error:
+        raise InputError(f"{marker}: incomplete assessment or active writer; "
+                         "inspect output before removing this marker") from error
+    try:
+        for path, content in output.items():
+            write_report(path, content)
+        marker.rmdir()
+    except (OSError, RuntimeError) as error:
+        raise OSError(f"assessment output is INCOMPLETE in {out_dir}; "
+                      f"do not use either report ({error})") from error
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Assess offline synthetic API authorization evidence.")
     parser.add_argument("--evidence", required=True, type=Path, help="synthetic evidence JSON")
@@ -94,8 +112,7 @@ def main(argv=None):
         if input_paths.intersection(path.resolve() for path in output):
             raise InputError("a report path overlaps an input file")
         args.out_dir.mkdir(parents=True, exist_ok=True)
-        for path, content in output.items():
-            write_report(path, content)
+        write_reports(args.out_dir, output)
     except (InputError, OSError, RuntimeError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
