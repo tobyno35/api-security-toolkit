@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "rules": [
+    {
+      "id": "p-read-own",
+      "operation": "read-record",
+      "role": "member",
+      "relation": "own",
+      "decision": "allow"
+    },
+    {
+      "id": "p-read-peer",
+      "operation": "read-record",
+      "role": "member",
+      "relation": "same_tenant_other",
+      "decision": "deny"
+    },
+    {
+      "id": "p-read-cross",
+      "operation": "read-record",
+      "role": "member",
+      "relation": "cross_tenant",
+      "decision": "deny"
+    },
+    {
+      "id": "p-change-admin",
+      "operation": "change-settings",
+      "role": "admin",
+      "relation": "tenant",
+      "decision": "allow"
+    },
+    {
+      "id": "p-change-member",
+      "operation": "change-settings",
+      "role": "member",
+      "relation": "tenant",
+      "decision": "deny"
+    },
+    {
+      "id": "p-settings-tenant",
+      "operation": "read-settings",
+      "role": "member",
+      "relation": "tenant",
+      "decision": "allow"
+    },
+    {
+      "id": "p-settings-cross",
+      "operation": "read-settings",
+      "role": "member",
+      "relation": "cross_tenant",
+      "decision": "deny"
+    },
+    {
+      "id": "p-review-member",
+      "operation": "review-settings",
+      "role": "member",
+      "relation": "tenant",
+      "decision": "deny"
+    },
+    {
+      "id": "p-summary-peer",
+      "operation": "view-record-summary",
+      "role": "member",
+      "relation": "same_tenant_other",
+      "decision": "allow"
+    },
+    {
+      "id": "p-summary-cross",
+      "operation": "view-record-summary",
+      "role": "member",
+      "relation": "cross_tenant",
+      "decision": "deny"
+    }
+  ]
+}

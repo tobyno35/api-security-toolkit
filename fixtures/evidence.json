@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "synthetic": true,
+  "actors": [
+    {
+      "id": "alex",
+      "role": "member",
+      "tenant": "tenant-a"
+    },
+    {
+      "id": "blair",
+      "role": "member",
+      "tenant": "tenant-a"
+    },
+    {
+      "id": "casey",
+      "role": "member",
+      "tenant": "tenant-b"
+    },
+    {
+      "id": "drew",
+      "role": "admin",
+      "tenant": "tenant-a"
+    }
+  ],
+  "resources": [
+    {
+      "id": "record-a",
+      "tenant": "tenant-a",
+      "owner": "alex"
+    },
+    {
+      "id": "record-b",
+      "tenant": "tenant-a",
+      "owner": "alex"
+    },
+    {
+      "id": "settings-a",
+      "tenant": "tenant-a",
+      "owner": null
+    }
+  ],
+  "cases": [
+    {
+      "id": "01-bola",
+      "check": "idor_bola",
+      "operation": "read-record",
+      "resource": "record-a",
+      "subject": "blair",
+      "observations": [
+        {
+          "ref": "ev-bola-subject",
+          "actor": "blair",
+          "outcome": "allowed"
+        },
+        {
+          "ref": "ev-bola-control",
+          "actor": "alex",
+          "outcome": "allowed"
+        }
+      ]
+    },
+    {
+      "id": "02-function",
+      "check": "broken_function_level_authorization",
+      "operation": "change-settings",
+      "resource": "settings-a",
+      "subject": "blair",
+      "observations": [
+        {
+          "ref": "ev-function-subject",
+          "actor": "blair",
+          "outcome": "allowed"
+        },
+        {
+          "ref": "ev-function-control",
+          "actor": "drew",
+          "outcome": "allowed"
+        }
+      ]
+    },
+    {
+      "id": "03-tenant",
+      "check": "cross_tenant_access",
+      "operation": "read-settings",
+      "resource": "settings-a",
+      "subject": "casey",
+      "observations": [
+        {
+          "ref": "ev-tenant-subject",
+          "actor": "casey",
+          "outcome": "allowed"
+        },
+        {
+          "ref": "ev-tenant-control",
+          "actor": "blair",
+          "outcome": "allowed"
+        }
+      ]
+    },
+    {
+      "id": "04-suspected",
+      "check": "idor_bola",
+      "operation": "read-record",
+      "resource": "record-b",
+      "subject": "blair",
+      "observations": [
+        {
+          "ref": "ev-suspected-subject",
+          "actor": "blair",
+          "outcome": "allowed"
+        }
+      ]
+    },
+    {
+      "id": "05-no-finding",
+      "check": "cross_tenant_access",
+      "operation": "view-record-summary",
+      "resource": "record-a",
+      "subject": "casey",
+      "observations": [
+        {
+          "ref": "ev-safe-subject",
+          "actor": "casey",
+          "outcome": "denied"
+        },
+        {
+          "ref": "ev-safe-control",
+          "actor": "blair",
+          "outcome": "allowed"
+        }
+      ]
+    },
+    {
+      "id": "06-insufficient",
+      "check": "broken_function_level_authorization",
+      "operation": "review-settings",
+      "resource": "settings-a",
+      "subject": "blair",
+      "observations": [
+        {
+          "ref": "ev-insufficient-subject",
+          "actor": "blair",
+          "outcome": "inconclusive"
+        }
+      ]
+    }
+  ]
+}
