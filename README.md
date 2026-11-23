@@ -79,3 +79,10 @@ Conflicting policy decisions for the same lookup key and observed success plus o
 - The matrix models one role and one tenant per actor with exact rules. It has no role inheritance, wildcard rules, time-dependent permissions, or session state.
 - Each case covers one declared check and requires a control on the same resource. Cross-tenant cases use an in-tenant non-owner control for owned resources to avoid mixing tenant membership with ownership.
 - Reports contain no assessment of unobserved operations, actors, tenants, or resources.
+
+## V0.2 offline asset inventory
+
+Import previously collected, authorized local Subfinder, dnsx and httpx evidence
+with `python3 -m api_security_toolkit.inventory` (or the installed
+`api-security-inventory` command). See [inventory usage and strict scope contract](docs/offline-inventory.md).
+The inventory does not run collectors or change the authorization classifier.

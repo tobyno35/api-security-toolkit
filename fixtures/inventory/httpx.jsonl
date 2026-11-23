@@ -1,0 +1,3 @@
+{"url":"https://API.example.test:443","host":"192.0.2.10","status_code":200}
+{"url":"https://api.example.test/v1","a":["192.0.2.10"]}
+{"url":"https://api.example.test/","location":"https://outside.test/"}

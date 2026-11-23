@@ -4,12 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "api-security-assessment-toolkit"
-version = "0.1.0"
+version = "0.2.0"
 description = "Offline assessment of synthetic API authorization evidence"
 requires-python = ">=3.10"
 dependencies = []
 
 [project.scripts]
+api-security-inventory = "api_security_toolkit.inventory:main"
 api-security-assess = "api_security_toolkit.__main__:main"
 
 [tool.setuptools]

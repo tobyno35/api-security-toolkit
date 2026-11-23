@@ -1,0 +1,1 @@
+{"domains":["example.test","*.example.test"],"networks":["192.0.2.0/24","2001:db8::/32"],"endpoints":["https://api.example.test/","https://api.example.test/v1"]}
