@@ -1,0 +1,132 @@
+{
+  "assets": [
+    {
+      "kind": "domain",
+      "references": [
+        {
+          "record": 1,
+          "source": "dnsx:f031c01efe6db3136b60ecb1aba2e3bcd92c066a19f22e6f1a150b94df5e4740"
+        },
+        {
+          "record": 1,
+          "source": "httpx:6a2d0e74ae5a1edc97eedbd9cd0ddda110be82aaafb0d73ac356ef4fdf50695e"
+        },
+        {
+          "record": 2,
+          "source": "httpx:6a2d0e74ae5a1edc97eedbd9cd0ddda110be82aaafb0d73ac356ef4fdf50695e"
+        },
+        {
+          "record": 1,
+          "source": "subfinder:9f3d1210b9c8263f04d38deba4d55b2b4e21415e72cd4f246864aa5adf026237"
+        },
+        {
+          "record": 2,
+          "source": "subfinder:9f3d1210b9c8263f04d38deba4d55b2b4e21415e72cd4f246864aa5adf026237"
+        }
+      ],
+      "value": "api.example.test"
+    },
+    {
+      "kind": "endpoint",
+      "references": [
+        {
+          "record": 1,
+          "source": "httpx:6a2d0e74ae5a1edc97eedbd9cd0ddda110be82aaafb0d73ac356ef4fdf50695e"
+        }
+      ],
+      "value": "https://api.example.test/"
+    },
+    {
+      "kind": "endpoint",
+      "references": [
+        {
+          "record": 2,
+          "source": "httpx:6a2d0e74ae5a1edc97eedbd9cd0ddda110be82aaafb0d73ac356ef4fdf50695e"
+        }
+      ],
+      "value": "https://api.example.test/v1"
+    },
+    {
+      "kind": "ip",
+      "references": [
+        {
+          "record": 1,
+          "source": "dnsx:f031c01efe6db3136b60ecb1aba2e3bcd92c066a19f22e6f1a150b94df5e4740"
+        },
+        {
+          "record": 1,
+          "source": "httpx:6a2d0e74ae5a1edc97eedbd9cd0ddda110be82aaafb0d73ac356ef4fdf50695e"
+        },
+        {
+          "record": 2,
+          "source": "httpx:6a2d0e74ae5a1edc97eedbd9cd0ddda110be82aaafb0d73ac356ef4fdf50695e"
+        }
+      ],
+      "value": "192.0.2.10"
+    },
+    {
+      "kind": "ip",
+      "references": [
+        {
+          "record": 1,
+          "source": "dnsx:f031c01efe6db3136b60ecb1aba2e3bcd92c066a19f22e6f1a150b94df5e4740"
+        }
+      ],
+      "value": "2001:db8::10"
+    }
+  ],
+  "rejected": [
+    {
+      "assets": [
+        {
+          "kind": "domain",
+          "value": "outside.test"
+        },
+        {
+          "kind": "endpoint",
+          "value": "https://outside.test/"
+        }
+      ],
+      "reason": "out_of_scope",
+      "record": 3,
+      "source": "httpx:6a2d0e74ae5a1edc97eedbd9cd0ddda110be82aaafb0d73ac356ef4fdf50695e"
+    },
+    {
+      "assets": [
+        {
+          "kind": "domain",
+          "value": "outside.test"
+        }
+      ],
+      "reason": "out_of_scope",
+      "record": 3,
+      "source": "subfinder:9f3d1210b9c8263f04d38deba4d55b2b4e21415e72cd4f246864aa5adf026237"
+    },
+    {
+      "assets": [
+        {
+          "kind": "ip",
+          "value": "203.0.113.9"
+        }
+      ],
+      "reason": "out_of_scope",
+      "record": 2,
+      "source": "dnsx:f031c01efe6db3136b60ecb1aba2e3bcd92c066a19f22e6f1a150b94df5e4740"
+    }
+  ],
+  "sources": {
+    "dnsx:f031c01efe6db3136b60ecb1aba2e3bcd92c066a19f22e6f1a150b94df5e4740": {
+      "sha256": "f031c01efe6db3136b60ecb1aba2e3bcd92c066a19f22e6f1a150b94df5e4740",
+      "tool": "dnsx"
+    },
+    "httpx:6a2d0e74ae5a1edc97eedbd9cd0ddda110be82aaafb0d73ac356ef4fdf50695e": {
+      "sha256": "6a2d0e74ae5a1edc97eedbd9cd0ddda110be82aaafb0d73ac356ef4fdf50695e",
+      "tool": "httpx"
+    },
+    "subfinder:9f3d1210b9c8263f04d38deba4d55b2b4e21415e72cd4f246864aa5adf026237": {
+      "sha256": "9f3d1210b9c8263f04d38deba4d55b2b4e21415e72cd4f246864aa5adf026237",
+      "tool": "subfinder"
+    }
+  },
+  "version": "0.2"
+}
